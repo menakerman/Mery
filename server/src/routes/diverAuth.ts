@@ -57,7 +57,8 @@ router.post('/request-otp', (req: Request, res: Response) => {
 
   console.log(`[OTP] ${diver.first_name} ${diver.last_name} (${diver.id_number}): ${code}`);
 
-  res.json({ success: true, diver_id: diver.id });
+  // Include OTP in response for testing (remove when SMS is connected)
+  res.json({ success: true, diver_id: diver.id, otp_code: code });
 });
 
 // Verify OTP - public endpoint

@@ -10,6 +10,7 @@ export default function DiverOtpLogin() {
   const [idNumber, setIdNumber] = useState('');
   const [code, setCode] = useState('');
   const [diverId, setDiverId] = useState<number>(0);
+  const [tempOtp, setTempOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -36,6 +37,7 @@ export default function DiverOtpLogin() {
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
       setDiverId(data.diver_id);
+      setTempOtp(data.otp_code || '');
       setStep('otp');
       setCountdown(300);
       setTimeout(() => codeInputRef.current?.focus(), 100);
@@ -80,6 +82,7 @@ export default function DiverOtpLogin() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
+      setTempOtp(data.otp_code || '');
       setCountdown(300);
     } catch {
       setError('שגיאת תקשורת');
@@ -151,6 +154,12 @@ export default function DiverOtpLogin() {
             <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm text-center">
               קוד אימות נשלח. הקוד תקף ל-{countdown > 0 ? formatTime(countdown) : 'פג תוקף'}
             </div>
+            {tempOtp && (
+              <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 p-3 rounded-lg text-center">
+                <div className="text-xs mb-1">קוד לבדיקה (יוסר כשיחובר SMS)</div>
+                <div className="text-2xl font-mono font-bold tracking-[0.3em]">{tempOtp}</div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">קוד אימות (6 ספרות)</label>
               <input
