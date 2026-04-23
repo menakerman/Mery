@@ -2,7 +2,12 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import bcrypt from 'bcrypt';
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'mery.db');
+// In dev (tsx): __dirname = server/src -> ../data = server/data
+// In prod (compiled): __dirname = server/dist/server/src -> go up to server/
+const serverRoot = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, '..', '..', '..', '..')
+  : path.join(__dirname, '..');
+const DB_PATH = path.join(serverRoot, 'data', 'mery.db');
 
 // Ensure data directory exists
 import fs from 'fs';
