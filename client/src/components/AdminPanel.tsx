@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../services/api';
 import type { CertificationLevel, Team, User } from '../../../shared/types';
 
@@ -189,6 +189,7 @@ function UsersTab() {
   const [form, setForm] = useState({ username: '', password: '', full_name: '', role: 'diver' as string, team_id: '' as string, diver_id: '' as string });
   const [editId, setEditId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const load = () => {
     api.get<User[]>('/users').then(setItems);
@@ -249,12 +250,20 @@ function UsersTab() {
 
   return (
     <div>
-      {!showForm && (
-        <button onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 mb-4 w-full sm:w-auto">
-          + הוסף משתמש
+      <div className="flex flex-wrap gap-2 mb-4">
+        {!showForm && (
+          <button onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+            + הוסף משתמש
+          </button>
+        )}
+        <button onClick={() => setShowImport(p => !p)}
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200">
+          {showImport ? 'סגור ייבוא' : 'ייבוא מאקסל'}
         </button>
-      )}
+      </div>
+
+      {showImport && <UserImport onDone={() => { setShowImport(false); load(); }} />}
 
       {showForm && (
         <div className="border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 bg-blue-50/50">
@@ -315,6 +324,172 @@ function UsersTab() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+const USER_IMPORT_FIELDS = [
+  { key: 'username', label: 'שם משתמש' },
+  { key: 'password', label: 'סיסמה' },
+  { key: 'full_name', label: 'שם מלא' },
+  { key: 'role', label: 'תפקיד' },
+];
+
+function UserImport({ onDone }: { onDone: () => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<{ headers: string[]; rows: Record<string, any>[]; totalRows: number } | null>(null);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [result, setResult] = useState<{ imported: number; errors: string[]; total: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDownloadSample = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/users/import/sample', { headers: { Authorization: `Bearer ${token}` } });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_users.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setResult(null);
+    setError('');
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      const data = await api.post<{ headers: string[]; rows: Record<string, any>[]; totalRows: number }>('/users/import/preview', fd);
+      setPreview(data);
+
+      const autoMap: Record<string, string[]> = {
+        username: ['שם משתמש', 'username', 'user'],
+        password: ['סיסמה', 'password', 'pass'],
+        full_name: ['שם מלא', 'full_name', 'שם'],
+        role: ['תפקיד', 'role', 'הרשאה'],
+      };
+      const newMapping: Record<string, string> = {};
+      for (const [field, aliases] of Object.entries(autoMap)) {
+        for (const header of data.headers) {
+          if (aliases.some(a => header.trim().toLowerCase() === a.toLowerCase())) {
+            newMapping[field] = header;
+            break;
+          }
+        }
+      }
+      setMapping(newMapping);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!file) return;
+    setLoading(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('mapping', JSON.stringify(mapping));
+      const data = await api.post<{ imported: number; errors: string[]; total: number }>('/users/import', fd);
+      setResult(data);
+      if (data.imported > 0) onDone();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const allMapped = mapping.username && mapping.full_name && mapping.role;
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 mb-4 bg-gray-50/50">
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">ייבוא משתמשים מאקסל</h4>
+
+      {error && <div className="bg-red-50 text-red-700 p-2 rounded text-xs mb-2">{error}</div>}
+
+      {result && (
+        <div className="bg-green-50 border border-green-200 p-2 rounded text-xs mb-2">
+          <span className="text-green-800 font-medium">יובאו {result.imported} מתוך {result.total}</span>
+          {result.errors.length > 0 && (
+            <div className="mt-1 text-red-600 max-h-24 overflow-y-auto">
+              {result.errors.map((e, i) => <div key={i}>{e}</div>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className="text-xs text-gray-500 mb-2">
+        עמודות: <strong>שם משתמש</strong>, <strong>סיסמה</strong> (חובה למשתמשים חדשים), <strong>שם מלא</strong>, <strong>תפקיד</strong> (manager / secretary / madar / diver או בעברית).
+        משתמש קיים יעודכן (ללא שינוי סיסמה).
+      </p>
+
+      <div className="flex flex-wrap gap-2 mb-3">
+        <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} className="hidden" />
+        <button onClick={() => fileRef.current?.click()}
+          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 transition">
+          בחר קובץ
+        </button>
+        <button onClick={handleDownloadSample}
+          className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-300 transition">
+          הורד דוגמה
+        </button>
+        {file && <span className="text-xs text-gray-500 self-center">{file.name}</span>}
+      </div>
+
+      {loading && <div className="text-center py-2 text-gray-500 text-xs">טוען...</div>}
+
+      {preview && !loading && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            {USER_IMPORT_FIELDS.map(f => (
+              <div key={f.key}>
+                <span className="text-xs font-medium text-gray-600">{f.label} <span className="text-red-500">*</span></span>
+                <select value={mapping[f.key] || ''} onChange={e => setMapping(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  className="w-full mt-0.5 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500">
+                  <option value="">-- בחר --</option>
+                  {preview.headers.map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto border rounded mb-3">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-100">
+                <tr>
+                  {preview.headers.map(h => <th key={h} className="px-2 py-1 text-right font-medium text-gray-600 whitespace-nowrap">{h}</th>)}
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {preview.rows.slice(0, 5).map((row, i) => (
+                  <tr key={i}>
+                    {preview.headers.map(h => <td key={h} className="px-2 py-1 whitespace-nowrap">{String(row[h] || '')}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button onClick={handleImport} disabled={loading || !allMapped}
+              className="bg-green-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-50 transition">
+              ייבוא {preview.totalRows} משתמשים
+            </button>
+            {!allMapped && <span className="text-xs text-orange-600">יש למפות את כל השדות</span>}
+          </div>
+        </>
+      )}
     </div>
   );
 }
