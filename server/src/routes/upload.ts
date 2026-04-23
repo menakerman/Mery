@@ -109,8 +109,10 @@ router.post('/import', upload.single('file'), (req: Request, res: Response) => {
           const lastName = getValue('last_name');
           const idNumber = getValue('id_number');
 
-          if (!firstName || !lastName || !idNumber) {
-            errors.push(`שורה ${i + 2}: שם פרטי, שם משפחה ותעודת זהות נדרשים`);
+          const phone = getValue('phone');
+
+          if (!firstName || !lastName || !idNumber || !phone) {
+            errors.push(`שורה ${i + 2}: שם פרטי, שם משפחה, תעודת זהות וטלפון נדרשים`);
             continue;
           }
 

@@ -60,9 +60,8 @@ export default function DiverForm() {
     if (!form.first_name.trim()) errs.first_name = 'שם פרטי הוא שדה חובה';
     if (!form.last_name.trim()) errs.last_name = 'שם משפחה הוא שדה חובה';
     if (!form.id_number.trim()) errs.id_number = 'תעודת זהות היא שדה חובה';
-    if (!form.phone.trim() && !form.email.trim()) {
-      errs.phone = 'יש להזין טלפון או אימייל';
-      errs.email = 'יש להזין טלפון או אימייל';
+    if (!form.phone.trim()) {
+      errs.phone = 'מספר טלפון הוא שדה חובה';
     }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       errs.email = 'כתובת אימייל לא תקינה';
@@ -115,8 +114,6 @@ export default function DiverForm() {
       setFieldErrors(prev => {
         const next = { ...prev };
         delete next[field];
-        if (field === 'phone' && prev.email === 'יש להזין טלפון או אימייל') delete next.email;
-        if (field === 'email' && prev.phone === 'יש להזין טלפון או אימייל') delete next.phone;
         return next;
       });
     }
@@ -160,8 +157,8 @@ export default function DiverForm() {
         <Field label="תעודת זהות" value={form.id_number} onChange={v => update('id_number', v)} required error={fieldErrors.id_number} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <Field label="טלפון" value={form.phone} onChange={v => update('phone', v)} error={fieldErrors.phone} hint="חובה להזין טלפון או אימייל" required htmlRequired={false} />
-          <Field label="אימייל" value={form.email} onChange={v => update('email', v)} type="email" error={fieldErrors.email} hint="חובה להזין טלפון או אימייל" required htmlRequired={false} />
+          <Field label="טלפון" value={form.phone} onChange={v => update('phone', v)} error={fieldErrors.phone} required />
+          <Field label="אימייל" value={form.email} onChange={v => update('email', v)} type="email" error={fieldErrors.email} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

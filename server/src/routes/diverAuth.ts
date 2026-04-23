@@ -11,17 +11,17 @@ const router = Router();
 
 // Request OTP - public endpoint
 router.post('/request-otp', (req: Request, res: Response) => {
-  const { contact, id_number } = req.body;
-  if (!contact || !id_number) {
-    res.status(400).json({ error: 'יש להזין טלפון/אימייל ותעודת זהות' });
+  const { phone, id_number } = req.body;
+  if (!phone || !id_number) {
+    res.status(400).json({ error: 'יש להזין מספר טלפון ותעודת זהות' });
     return;
   }
 
   const diver = db.prepare(`
     SELECT id, first_name, last_name, id_number
     FROM divers
-    WHERE (phone = ? OR email = ?) AND id_number = ?
-  `).get(contact.trim(), contact.trim(), id_number.trim()) as any;
+    WHERE phone = ? AND id_number = ?
+  `).get(phone.trim(), id_number.trim()) as any;
 
   if (!diver) {
     res.status(404).json({ error: 'פרטים לא נמצאו' });

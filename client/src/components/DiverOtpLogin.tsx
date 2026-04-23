@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 
-type Step = 'contact' | 'otp';
+type Step = 'phone' | 'otp';
 
 export default function DiverOtpLogin() {
-  const [step, setStep] = useState<Step>('contact');
-  const [contact, setContact] = useState('');
+  const [step, setStep] = useState<Step>('phone');
+  const [phone, setPhone] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [code, setCode] = useState('');
   const [diverId, setDiverId] = useState<number>(0);
@@ -17,7 +17,6 @@ export default function DiverOtpLogin() {
   const loginWithOtp = useAuthStore(s => s.loginWithOtp);
   const navigate = useNavigate();
 
-  // Countdown timer for OTP expiry display
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setInterval(() => setCountdown(c => c - 1), 1000);
@@ -32,16 +31,13 @@ export default function DiverOtpLogin() {
       const res = await fetch('/api/diver-auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact: contact.trim(), id_number: idNumber.trim() }),
+        body: JSON.stringify({ phone: phone.trim(), id_number: idNumber.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
+      if (!res.ok) { setError(data.error); return; }
       setDiverId(data.diver_id);
       setStep('otp');
-      setCountdown(300); // 5 minutes
+      setCountdown(300);
       setTimeout(() => codeInputRef.current?.focus(), 100);
     } catch {
       setError('שגיאת תקשורת');
@@ -61,10 +57,7 @@ export default function DiverOtpLogin() {
         body: JSON.stringify({ diver_id: diverId, code: code.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
+      if (!res.ok) { setError(data.error); return; }
       const diver = data.diver;
       loginWithOtp(data.token, diver.id, `${diver.first_name} ${diver.last_name}`);
       navigate('/');
@@ -83,13 +76,10 @@ export default function DiverOtpLogin() {
       const res = await fetch('/api/diver-auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact: contact.trim(), id_number: idNumber.trim() }),
+        body: JSON.stringify({ phone: phone.trim(), id_number: idNumber.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
+      if (!res.ok) { setError(data.error); return; }
       setCountdown(300);
     } catch {
       setError('שגיאת תקשורת');
@@ -112,15 +102,15 @@ export default function DiverOtpLogin() {
           <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">{error}</div>
         )}
 
-        {step === 'contact' && (
+        {step === 'phone' && (
           <form onSubmit={requestOtp} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">טלפון או אימייל</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">מספר טלפון</label>
               <input
-                type="text"
-                value={contact}
-                onChange={e => setContact(e.target.value)}
-                placeholder="050-1234567 או email@example.com"
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="0501234567"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 required
                 autoFocus
@@ -194,7 +184,7 @@ export default function DiverOtpLogin() {
               </button>
               <button
                 type="button"
-                onClick={() => { setStep('contact'); setCode(''); setError(''); }}
+                onClick={() => { setStep('phone'); setCode(''); setError(''); }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 חזרה

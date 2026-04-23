@@ -146,7 +146,7 @@ export default function ExcelUpload() {
               <tr><td className="px-2 sm:px-3 py-1">שם פרטי</td><td className="px-2 sm:px-3 py-1">כן</td><td className="px-2 sm:px-3 py-1">טקסט</td></tr>
               <tr><td className="px-2 sm:px-3 py-1">שם משפחה</td><td className="px-2 sm:px-3 py-1">כן</td><td className="px-2 sm:px-3 py-1">טקסט</td></tr>
               <tr><td className="px-2 sm:px-3 py-1">תעודת זהות</td><td className="px-2 sm:px-3 py-1">כן</td><td className="px-2 sm:px-3 py-1">מספר (ייחודי לכל צולל)</td></tr>
-              <tr><td className="px-2 sm:px-3 py-1">טלפון</td><td className="px-2 sm:px-3 py-1">לא</td><td className="px-2 sm:px-3 py-1">טקסט</td></tr>
+              <tr><td className="px-2 sm:px-3 py-1">טלפון</td><td className="px-2 sm:px-3 py-1">כן</td><td className="px-2 sm:px-3 py-1">טקסט (ייחודי)</td></tr>
               <tr><td className="px-2 sm:px-3 py-1">אימייל</td><td className="px-2 sm:px-3 py-1">לא</td><td className="px-2 sm:px-3 py-1">טקסט</td></tr>
               <tr><td className="px-2 sm:px-3 py-1">רמת הסמכה</td><td className="px-2 sm:px-3 py-1">לא</td><td className="px-2 sm:px-3 py-1">שם רמה כפי שהוגדרה בניהול</td></tr>
               <tr><td className="px-2 sm:px-3 py-1">תוקף הסמכה</td><td className="px-2 sm:px-3 py-1">לא</td><td className="px-2 sm:px-3 py-1">תאריך (YYYY-MM-DD)</td></tr>

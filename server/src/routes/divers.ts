@@ -92,8 +92,8 @@ router.post('/', requireRole('manager', 'secretary', 'madar'), (req: Request, re
     res.status(400).json({ error: 'שם פרטי, שם משפחה ותעודת זהות נדרשים' });
     return;
   }
-  if (!phone && !email) {
-    res.status(400).json({ error: 'יש להזין טלפון או אימייל (לפחות אחד)' });
+  if (!phone) {
+    res.status(400).json({ error: 'מספר טלפון הוא שדה חובה' });
     return;
   }
 
@@ -136,8 +136,8 @@ router.put('/:id', requireRole('manager', 'secretary', 'madar'), (req: Request, 
 
   const { first_name, last_name, id_number, phone, email, medical_status, medical_expiry_date, notes, team_ids } = req.body;
 
-  if (!phone && !email) {
-    res.status(400).json({ error: 'יש להזין טלפון או אימייל (לפחות אחד)' });
+  if (!phone) {
+    res.status(400).json({ error: 'מספר טלפון הוא שדה חובה' });
     return;
   }
 
