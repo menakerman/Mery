@@ -38,7 +38,15 @@ app.use('/api/diver-certs', diverCertRoutes);
 
 // In production, serve the built client
 if (isProduction) {
-  const clientDist = path.join(__dirname, '..', '..', '..', '..', 'client', 'dist');
+  // Log __dirname for debugging path issues
+  console.log('__dirname:', __dirname);
+  // Walk up from compiled location to find project root, then into client/dist
+  let clientDist = path.join(__dirname, '..', '..', '..', '..', 'client', 'dist');
+  // Fallback: try process.cwd()
+  if (!require('fs').existsSync(clientDist)) {
+    clientDist = path.join(process.cwd(), 'client', 'dist');
+  }
+  console.log('Serving client from:', clientDist);
   app.use(express.static(clientDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
