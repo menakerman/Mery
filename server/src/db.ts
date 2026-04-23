@@ -118,6 +118,24 @@ export function initDb() {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS user_login_attempts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      failed_attempts INTEGER DEFAULT 0,
+      locked_until TEXT,
+      last_attempt_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS user_login_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      full_name TEXT DEFAULT '',
+      success INTEGER NOT NULL,
+      ip_address TEXT DEFAULT '',
+      reason TEXT DEFAULT '',
+      attempted_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS config (
       key TEXT PRIMARY KEY NOT NULL,
       value TEXT NOT NULL,
