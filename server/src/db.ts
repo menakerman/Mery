@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // In dev (tsx): __dirname = server/src -> ../data = server/data
 // In prod (compiled): __dirname = server/dist/server/src -> go up to server/
