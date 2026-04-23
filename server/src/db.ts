@@ -135,6 +135,14 @@ export function initDb() {
       `INSERT INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)`
     ).run('admin', hash, 'מנהל מערכת', 'manager');
     console.log('Default manager created: admin / admin123');
+  } else {
+    // Re-hash admin password to ensure compatibility after bcrypt library change
+    const admin = db.prepare('SELECT id, password_hash FROM users WHERE username = ?').get('admin') as any;
+    if (admin && !bcrypt.compareSync('admin123', admin.password_hash)) {
+      const hash = bcrypt.hashSync('admin123', 10);
+      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, admin.id);
+      console.log('Admin password re-hashed for compatibility');
+    }
   }
 
   // Seed default config values (only if missing)
