@@ -494,6 +494,30 @@ function UserImport({ onDone }: { onDone: () => void }) {
   );
 }
 
+function CopyLinkButton({ url, label }: { url: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-gray-700 mb-1">{label}</div>
+        <div className="text-xs text-gray-500 truncate" dir="ltr">{url}</div>
+      </div>
+      <button onClick={copy}
+        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+          copied ? 'bg-green-100 text-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}>
+        {copied ? 'הועתק!' : 'העתק'}
+      </button>
+    </div>
+  );
+}
+
 function SettingsTab() {
   const [config, setConfig] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -548,9 +572,19 @@ function SettingsTab() {
     { key: 'medical_expiry_warning_days', label: 'אזהרת תוקף רפואי (ימים)', hint: 'כמה ימים לפני פקיעה להציג אזהרה', type: 'number' },
   ];
 
+  const baseUrl = window.location.origin;
+
   return (
     <div className="space-y-6">
       <div>
+        <h3 className="text-base sm:text-lg font-semibold mb-3">קישורים לשיתוף</h3>
+        <div className="space-y-2">
+          <CopyLinkButton url={`${baseUrl}/diver-login`} label="קישור לצוללים (צפייה בסטטוס)" />
+          <CopyLinkButton url={`${baseUrl}/login`} label="קישור למנהלים / מזכירות / מד״רים" />
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
         <h3 className="text-base sm:text-lg font-semibold mb-3">הגדרות כלליות</h3>
         <div className="space-y-3">
           {fields.map(f => (
